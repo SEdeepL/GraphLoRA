@@ -17,3 +17,5 @@ python3 entropy.py $patch_text $graph_file
 python3 operator.py $graph_file
 
 python3 statement.py $graph_file
+
+python3 nested.py $patch_text $source_file 
