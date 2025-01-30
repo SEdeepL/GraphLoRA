@@ -558,7 +558,7 @@ class Linear(nn.Module, LoraLayer):
             self.lora_B[adapter].weight.data = weight_B.to(dtype)
 
         return output_tensor
-    def processgraph():
+    def processgraph(node,edge,attri):
         node_num = []
         for num in node[-1]:
             if num!=-1:
@@ -581,20 +581,27 @@ class Linear(nn.Module, LoraLayer):
             else:
                 break
         edge = edge[:-2]
-        global_data = Data(x=node[:node_num[0]], edge_index=edge[0], batch=torch.zeros(node[:node_num[0]].size(0), dtype=torch.long))
+        attri_num = []
+        for num in attri[-1]:
+            if num!=-1:
+                attri_num.append(num)
+            else:
+                break
+        attri = attri[:-1]
+        global_data = Data(x=node[:node_num[0]], edge_index=edge[0],attri=attri[:attri_num[0]], batch=torch.zeros(node[:node_num[0]].size(0), dtype=torch.long))
         subgraph_data_list = []
         nodesum=1
         for i in range(1,len(node_num)):
             subgraph_batch = torch.zeros(node[:node_num[i].size(0), dtype=torch.long)
-            subgraph_data = Data(x=node[nodesum,nodesum+node_num[i]], edge_index=edge[i], batch=subgraph_batch, index = sub_index[i])
+            subgraph_data = Data(x=node[nodesum,nodesum+node_num[i]], edge_index=edge[i],attri=attri[1,attri_num[i]+1], batch=subgraph_batch, index = sub_index[i])
             nodesum =nodesum+node_num[i]
             subgraph_data_list.append(subgraph_data)
         return subgraph_data_list, global_data
-    def forward(self, x: torch.Tensor,  node: torch.Tensor, edge: torch.Tensor,*args: Any, **kwargs: Any) -> torch.Tensor:
+    def forward(self, x: torch.Tensor,  node: torch.Tensor, edge: torch.Tensor,attri: torch.Tensor,*args: Any, **kwargs: Any) -> torch.Tensor:
         self._check_forward_args(x, *args, **kwargs)
         adapter_names = kwargs.pop("adapter_names", None)
         #ipdb.set_trace()
-        subgraph_data_list, global_data=processgraph(node,edge)
+        subgraph_data_list, global_data=processgraph(node,edge,attri)
         graph_feature = graph(subgraph_data_list, global_data)
         if self.disable_adapters:
             if self.merged:
@@ -619,6 +626,7 @@ class Linear(nn.Module, LoraLayer):
                 if not self.use_dora[active_adapter]:
                     result_down = lora_A(dropout(x))
                     result_fuse = self.att_layer(graph_feature,result_down,result_down)
+
                     result = result + lora_B(result_fuse) * scaling
                 else:
                     x = dropout(x)
