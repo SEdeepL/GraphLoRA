@@ -33,7 +33,7 @@ def get_graph(path):
         attri=[]
         for k in range(1,len(cont)):
             attri.append(cont[i].split("=")[1])
-        attri.append(attri)
+        attri.append(eval(attri))
     heads=[]
     tails=[]
     for j in range(edgep+1,len(graph_line)):
