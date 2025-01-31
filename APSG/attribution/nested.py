@@ -11,11 +11,15 @@ def count_nesting_levels(node, level=0):
     return max_level
 
 if __name__ == "__main__":
-    code = ""
-    tree = ast.parse(code)
-    nesting_level = count_nesting_levels(tree)
-    nested = Fasle
-    if nesting_level >= 2:
-        nested = True
-    else:
-        nested = False
+    patch_file = sys.argv[1]
+    bug_file = sys.argv[2]
+    patch = open(patch_file, 'r')
+    patch_lines = patch.readlines()
+    for i in range(len(patch_lines)):
+        tree = ast.parse(patch_lines[i])
+        nesting_level = count_nesting_levels(tree)
+        nested = Fasle
+        if nesting_level >= 2:
+            nested = True
+        else:
+            nested = False
