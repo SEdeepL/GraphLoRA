@@ -1,0 +1,4 @@
+        boolean staleInputs = false;
+-      if (options.dependencyOptions.needsManagement()) {
++      if (options.dependencyOptions.needsManagement() && options.closurePass) {
+         for (CompilerInput input : inputs) {

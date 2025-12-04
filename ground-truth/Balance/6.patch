@@ -1,0 +1,6 @@
+     public double getMaximumExplodePercent() {
+-        if (this.dataset == null) {
+-            return 0.0;
+-        }
+         double result = 0.0;
+         Iterator iterator = this.dataset.getKeys().iterator();
