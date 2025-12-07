@@ -1,8 +1,0 @@
--        else {
-         
-             double minval = Double.NaN;
-             if (item.getMinOutlier() != null) {
-                 this.minimumRangeValueRow = r;
-                 this.minimumRangeValueColumn = c;
-             }
--        }

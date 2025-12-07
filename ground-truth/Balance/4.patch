@@ -1,8 +1,0 @@
-     do {
-       Node c = node.getFirstChild();
-       while(c != null) {
--        Node next = c.getNext();
-         traverse(c);
-+        Node next = c.getNext();
-         c = next;
-       }
