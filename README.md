@@ -9,16 +9,16 @@ Automated program repair (APR) aims to automatically repair program errors witho
 Here we list the descriptions of the folders:
 
 ```
- ├── APSG: the code of APSG
-     ├──APSG/apsg: the code of extracting semantic information from patches
-     ├──APSG/apsg_patch: the code of reading patches data and building APSG 
- ├── graph_lora: the code of Graph_LoRA
-     ├──peft/data/: the code of data processing
-     ├──peft/model/: the code of Graph-LoRA
- ├── ablation_study: the code of ablation studies
- ├── ground-truth: the code of training and testing model with ground-truth prompt
- ├── train.py: the code of training
- ├── test.py: the code of testing
+ ├── APSG: the code for APSG
+     ├──APSG/apsg: the code for extracting semantic information from patches
+     ├──APSG/apsg_patch: the code for reading patches data and building APSG 
+ ├── graph_lora: the code for Graph_LoRA
+     ├──peft/data/: the code for data processing
+     ├──peft/model/: the code for Graph-LoRA
+ ├── ablation_study: the code for ablation studies
+ ├── ground-truth: the code for training and testing model with ground-truth prompt
+ ├── train.py: the code for training
+ ├── test.py: the code for testing
 ```
 ## Requirements
 * Conda
@@ -89,7 +89,7 @@ CUDA_VISIBLE_DEVICES=0,1 python /ablation_study/Graph_LoRA_ablation/Graph_LoRA-W
 
 ```
 (3)APSG-Attribute: We delete the attributes of APSG and only input the graph structure of APSG and code patches into the LLMs.
-This requires regenerating the APSG without attributes for the patches.
+First, we regenerate the APSG without attributes for the patches.
 ```
 python3 ablate_structure_only_jsonl.py --input graphs.jsonl --output graphs_structure_only.jsonl
 ```
@@ -102,7 +102,7 @@ CUDA_VISIBLE_DEVICES=0,1 python /ablation_study/Graph_LoRA_ablation/APSG-Atteibu
 ```
 CUDA_VISIBLE_DEVICES=0,1 python /ablation_study/Graph_LoRA_ablation/APSG-Graph/train.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1536 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 256 --target all   --output_dir result_nocompile_nofa
 ```
-(5)Original-LLM: We do not train the model and only give LLMs the prompt ”Assess whether the patch is correct” and code patches.
+(5)Original-LLM: We do not train the model and only give LLMs the prompt and code patches.
 ```
 CUDA_VISIBLE_DEVICES=0,1 python /ablation_study/Graph_LoRA_ablation/Original-LLM.py --input input.jsonl --output output.jsonl --model_name LLM_name --model_path /path/of/LLM
 ```
@@ -136,9 +136,10 @@ python test.py --model_id /path/to/LLM --ckpt_dir ./result --test_json /path/tes
 
 ### Effect of Ground-Truth Patches
 
-To investigate the effect of ground-truth patches, we treat human-written patches as ground-truth patches and use them as prompt inputs to the model and conduct experiment on the Lin and Balance datasets.
+To investigate the effect of ground-truth patches on the model performance, we use them as prompt inputs to the model and conduct experiments on the Lin dataset and the Balance dataset.
 
-We construct a patch pair for each tool-generated patch, consisting of the patch itself and the ground-truth patch for the corresponding bug.
+We collect Defects4J human-written patches as ground-truth patches and construct a patch pair for each to be assessed, consisting of the patch itself and the ground-truth patch for the corresponding bug.
+
 The command to construct patch pair is as follows.
 ```
 python groundtruth.py --root_dir /path/of/dataset --output groundtruth.json --human_root /path/of/humanwrite/patch
