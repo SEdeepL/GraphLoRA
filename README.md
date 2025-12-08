@@ -42,7 +42,7 @@ Here we list the descriptions of the folders:
   (1)First, we add data from the Lin and Merge datasets to the Multi-Benchmarks dataset.
   (2)Then, to avoid excessive overfitting patches for Defects4J, we add manually written patches for Defects4J as the correct patches to the Multi-Benchmarks dataset.
   (3) Next, to supplement the patches for bug benchmarks besides Defects4J, we augment the Multi-Benchmarks dataset with the patches for bug benchmarks Bugs.jar and Bears released by Ye et al.
-  (4)Finally, after deduplication, Multi-Benchmarks contains 7794 patches, including 2673 correct patches and 5121 overfitting patches. The Multi-Benchmarks dataset can be obtained from：https://drive.google.com/file/d/1wSvKZox-FLiJ9pFioxeZwqzGTVWyD_iS/view?usp=sharing
+  (4)Finally, after deduplication, Multi-Benchmarks contains 7794 patches, including 2673 correct patches and 5121 overfitting patches. The Multi-Benchmarks dataset can be obtained from：https://drive.google.com/file/d/19giwUV2dqgkJLDnpQNOY3wXfEkyINOSQ/view?usp=sharing
 
 ## Dependency
 * Python >= 3.8
@@ -135,14 +135,19 @@ python test.py --model_id /path/to/LLM --ckpt_dir ./result --test_json /path/tes
 
 ### Effect of Ground-Truth Patches
 
-To investigate the effect of ground-truth patches, we use them as prompt inputs to the model and conduct experiment on the Lin and Balance datasets.
+To investigate the effect of ground-truth patches, we treat human-written patches as ground-truth patches and use them as prompt inputs to the model and conduct experiment on the Lin and Balance datasets.
 
-The \ground-truth\Lin(or Balance) directory stores six ground-truth patches corresponding to six repair patterns: Conditional Block Fix, Expression Fix, Wraps-with Fix, Single Line Fix, Wrong Reference Fix, and Missing Null-Check Fix.
+We construct a patch pair for each tool-generated patch, consisting of a tool-generated patch to be assessed and a ground-truth patch for the same bug.
+The command to construct a patch pair is as follows.
+```
+python groundtruth.py --root_dir /path/of/dataset --output groundtruth.json --human_root /path/of/humanwrite/patch
+```
+We place the ground-truth patch in the patch pair preceding the tool-generated patch to be assessed as prompt to feed into the model.
 
 We train and test model with ground-truth patches as follows.
 ```
-PYTHONUNBUFFERED=1 CUDA_VISIBLE_DEVICES=0 python train.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1536 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 64 --target all   --output_dir result_nocompile_nofa --gt_patch_dir /data/gt_patches
+PYTHONUNBUFFERED=1 CUDA_VISIBLE_DEVICES=0 python /ground_truth/train_gt.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1536 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 64 --target all   --output_dir result_nocompile_nofa
 ```
 ```
-python test.py --model_id /path/to/LLM --ckpt_dir ./result --test_json /path/test.json --micro_batch_size 2 --num_workers 4 --pin_memory --gt_patch_dir /data/gt_patches
+python /ground_truth/test_gt.py --model_id /path/to/LLM --ckpt_dir ./result --test_json /path/test.json --micro_batch_size 2 --num_workers 4 --pin_memory
 ```
