@@ -39,11 +39,11 @@ Here we list the descriptions of the folders:
 * Merge dataset can be obtained from：https://github.com/claudeyj/patch_correctness
 * Balance dataset can be obtained from：https://github.com/claudeyj/patch_correctness/tree/master/balanced_dataset
 * Lin dataset can be obtained from：https://github.com/Ringbo/Cache/tree/master/patches/Small
-* Multi-Benchmarks dataset: This dataset is a large patch dataset that contains patches for three bug benchmarks: Defects4J, Bugs.jar, and Bears. The construction process of the Multi-Benchmarks dataset is as follows:
+* Multi-Benchmarks dataset: This dataset is a large APCA dataset that contains patches for three bug benchmarks: Defects4J, Bugs.jar, and Bears. The construction process of the Multi-Benchmarks dataset is as follows:
   (1) First, we add data from the Lin and Merge datasets to the Multi-Benchmarks dataset.
   (2) Then, to avoid an excessive number of overfitting patches for Defects4J, we add human-written patches for Defects4J as the correct patches to the Multi-Benchmarks dataset.
   (3) Next, to supplement the patches for bug benchmarks besides Defects4J, we augment the Multi-Benchmarks dataset with the patches for bug benchmarks Bugs.jar and Bears released by Ye et al.
-  (4) Finally, after deduplication, Multi-Benchmarks contains 7794 patches, including 2673 correct patches and 5121 overfitting patches. The Multi-Benchmarks dataset can be obtained from：https://drive.google.com/file/d/19giwUV2dqgkJLDnpQNOY3wXfEkyINOSQ/view?usp=sharing
+  (4) Finally, after deduplication, Multi-Benchmarks contains 7794 patches, including 2673 correct patches and 5121 overfitting patches. The Multi-Benchmarks dataset can be obtained from: https://drive.google.com/file/d/1tbz-nHe4MTAoI8H-5vE5TJjQDH_FgyI8/view?usp=sharing
 
 ## Dependency
 * Python >= 3.8
@@ -66,7 +66,7 @@ Our evaluation is performed on an Ubuntu 22.04.5 server equipped with two RTX A6
 We train and test our model on five datasets: Wang dataset, Merge dataset, Balance dataset, Lin dataset and Multi-Benchmarks dataset.
 We first train the model.
 ```
-CUDA_VISIBLE_DEVICES=0,1 python train.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1536 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 256 --target all   --output_dir result_nocompile_nofa
+CUDA_VISIBLE_DEVICES=0,1 python train.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1024 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 256 --target all   --output_dir result_nocompile_nofa
 ```
 Then we test the model.
 ```
@@ -76,16 +76,16 @@ python test.py --model_id /path/to/LLM --ckpt_dir ./result --test_json /path/tes
 ### RQ2 （Ablation Study）
 We designed two ablation studies. (1) The first ablation study focuses on the model structure to demonstrate the contribution of the submodules in the model. (2) The second ablation study focuses on APSG nodes to demonstrate the contribution of different types of nodes in APSG.
 
-In the first ablation study, five submodules are gradually removed: (1) Graph-LoRA-Attention, (2) Graph-LoRA-Weak, (3) APSG-Attribute, (4) APSG-Graph, and (5) Original-LLM.
+In the first ablation study, five submodules are gradually removed: (1) Graph-LoRA-Attention, (2) Graph-LoRA-Weak, (3) APSG-Attribute, (4) APSG-Graph, and (5) LLM-Train.
 
 (1)Graph-LoRA-Attention: We removed the attention fusion layer of Graph-LoRA and replaced it with Graph-LoRA-Attention which achieves fusion through vector concatenation. 
 ```
-CUDA_VISIBLE_DEVICES=0,1 python /ablation_study/Graph_LoRA_ablation/Graph_LoRA-Attention/train.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1536 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 256 --target all   --output_dir result_nocompile_nofa
+CUDA_VISIBLE_DEVICES=0,1 python /ablation_study/Graph_LoRA_ablation/Graph_LoRA-Attention/train.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1024 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 256 --target all   --output_dir result_nocompile_nofa
 
 ```
 (2)Graph-LoRA-Weak: We remove GNN and directly input the linearized APSG content into the LLMs. 
 ```
-CUDA_VISIBLE_DEVICES=0,1 python /ablation_study/Graph_LoRA_ablation/Graph_LoRA-Week/train.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1536 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 256 --target all   --output_dir result_nocompile_nofa
+CUDA_VISIBLE_DEVICES=0,1 python /ablation_study/Graph_LoRA_ablation/Graph_LoRA-Week/train.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1024 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 256 --target all   --output_dir result_nocompile_nofa
 
 ```
 (3)APSG-Attribute: We delete the attributes of APSG and only input the graph structure of APSG and code patches into the LLMs.
@@ -95,14 +95,14 @@ python3 ablate_structure_only_jsonl.py --input graphs.jsonl --output graphs_stru
 ```
 Then train the model.
 ```
-CUDA_VISIBLE_DEVICES=0,1 python /ablation_study/Graph_LoRA_ablation/APSG-Atteibute/train.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1536 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 256 --target all   --output_dir result_nocompile_nofa
+CUDA_VISIBLE_DEVICES=0,1 python /ablation_study/Graph_LoRA_ablation/APSG-Atteibute/train.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1024 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 256 --target all   --output_dir result_nocompile_nofa
 
 ```
 (4)APSG-Graph: We remove the whole APSG and only input the code patches into the LLMs.
 ```
-CUDA_VISIBLE_DEVICES=0,1 python /ablation_study/Graph_LoRA_ablation/APSG-Graph/train.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1536 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 256 --target all   --output_dir result_nocompile_nofa
+CUDA_VISIBLE_DEVICES=0,1 python /ablation_study/Graph_LoRA_ablation/APSG-Graph/train.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1024 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 256 --target all   --output_dir result_nocompile_nofa
 ```
-(5)Original-LLM: We do not train the model and only give LLMs the prompt and code patches.
+(5)LLM-Train: We do not train the model and only give LLMs the prompt and code patches.
 ```
 CUDA_VISIBLE_DEVICES=0,1 python /ablation_study/Graph_LoRA_ablation/Original-LLM.py --input input.jsonl --output output.jsonl --model_name LLM_name --model_path /path/of/LLM
 ```
@@ -128,7 +128,7 @@ python cross-project.py
 ```
 Second, train and test the model on cross-project dataset.
 ```
-CUDA_VISIBLE_DEVICES=0,1 python train.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1536 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 256 --target all   --output_dir result_nocompile_nofa
+CUDA_VISIBLE_DEVICES=0,1 python train.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1024 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 256 --target all   --output_dir result_nocompile_nofa
 ```
 ```
 python test.py --model_id /path/to/LLM --ckpt_dir ./result --test_json /path/test.json --micro_batch_size 2 --num_workers 4 --pin_memory
@@ -148,7 +148,7 @@ We place the ground-truth patch in the patch pair preceding the patch to be asse
 
 We train and test model with ground-truth patch as follows.
 ```
-CUDA_VISIBLE_DEVICES=0,1 python /ground_truth/train_gt.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1536 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 256 --target all   --output_dir result_nocompile_nofa
+CUDA_VISIBLE_DEVICES=0,1 python /ground_truth/train_gt.py   --model_id /path/of/LLM   --train_json /path/of/train/data   --val_json   /path/of/test/data   --max_len 1024 --micro_batch_size 2 --global_batch_size 2   --epochs 1 --lr 2e-4 --warmup_ratio 0.06   --rank 256 --target all   --output_dir result_nocompile_nofa
 ```
 ```
 python /ground_truth/test_gt.py --model_id /path/to/LLM --ckpt_dir ./result --test_json /path/test.json --micro_batch_size 2 --num_workers 4 --pin_memory
