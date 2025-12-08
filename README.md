@@ -138,12 +138,12 @@ python test.py --model_id /path/to/LLM --ckpt_dir ./result --test_json /path/tes
 
 To investigate the effect of ground-truth patches, we treat human-written patches as ground-truth patches and use them as prompt inputs to the model and conduct experiment on the Lin and Balance datasets.
 
-We construct a patch pair for each tool-generated patch, consisting of a tool-generated patch to be assessed and a ground-truth patch for the same bug.
+We construct a patch pair for each tool-generated patch, consisting of the patch itself and the ground-truth patch for the corresponding bug.
 The command to construct patch pair is as follows.
 ```
 python groundtruth.py --root_dir /path/of/dataset --output groundtruth.json --human_root /path/of/humanwrite/patch
 ```
-We place the ground-truth patch in the patch pair preceding the tool-generated patch to be assessed as prompt to feed into the model.
+We place the ground-truth patch in the patch pair preceding the patch to be assessed as prompt to feed into the model.
 
 We train and test model with ground-truth patch as follows.
 ```
